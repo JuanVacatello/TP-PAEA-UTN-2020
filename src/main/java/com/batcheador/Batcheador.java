@@ -35,7 +35,9 @@ public class Batcheador {
         	@Override
             public void itemStateChanged(ItemEvent e) {
                 if(e.getStateChange() == ItemEvent.SELECTED) {
-                    textField.setText((String) comboBox.getSelectedItem());
+                    String selectedOption = (String) comboBox.getSelectedItem();
+                    textField.setText(selectedOption);
+                    System.out.println(selectedOption);
                 }
             }
         });
@@ -55,7 +57,7 @@ public class Batcheador {
                 	File file = fc.getSelectedFile();
                 	System.out.println(file.getName());
                 } else {
-                	System.out.println("No aprobado ?");
+                	System.out.println("El usuario canceló");
                 }
             }
         });
