@@ -54,67 +54,79 @@ public class Batcheador {
 			String parameterLabel = (String)labelGetter.invoke(annotation, (Object[]) null);
 			switch(parameterType) {
 				case "file":
-					final JFileChooser fc = new JFileChooser();
-					JLabel fileChooserLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
-					fileChooserLabel.setPreferredSize(new Dimension(200,30));
-					JButton fileChooserButton = new JButton("Examinar");
-
-					fileChooserButton.addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							int returnVal = fc.showOpenDialog(frame);
-
-							if (returnVal == JFileChooser.APPROVE_OPTION) {
-								File file = fc.getSelectedFile();
-								System.out.println(file.getName());
-							} else {
-								System.out.println("No aprobado ?");
-							}
-						}
-					});
-
-					fileChooserButton.setPreferredSize(new Dimension(100,30));
-
-					JPanel panel2 = new JPanel();
-					panel2.add(fileChooserLabel, BorderLayout.PAGE_START);
-					panel2.add(fileChooserButton, BorderLayout.PAGE_END);
-					ventana.add(panel2);
+					renderFileChooser(parameterLabel, ventana, frame);
 					break;
     			case "text":
-    				JLabel textFieldLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
-    		    	textFieldLabel.setPreferredSize(new Dimension(200,30));
-    		    	JTextField textField = new JTextField();
-
-    		    	JPanel panel = new JPanel();
-    		    	panel.add(textFieldLabel, BorderLayout.PAGE_START);
-    		    	panel.add(textField, BorderLayout.PAGE_END);
-
-    		    	ventana.add(panel);
+    				renderText(parameterLabel, ventana);
     		    	break;
 				case "number":
-					JLabel textFieldLabel2 = new JLabel(parameterLabel, SwingConstants.LEFT);
-					textFieldLabel2.setPreferredSize(new Dimension(200,30));
-
-					NumberFormat format = NumberFormat.getIntegerInstance();
-					format.setGroupingUsed(false);
-
-					NumberFormatter numberFormatter = new NumberFormatter(format);
-					numberFormatter.setValueClass(Long.class);
-					numberFormatter.setAllowsInvalid(false);
-
-					JFormattedTextField jFormattedTextField = new JFormattedTextField(numberFormatter);
-					jFormattedTextField.setPreferredSize(new Dimension(200,30));
-
-					JPanel panel3 = new JPanel();
-					panel3.add(textFieldLabel2, BorderLayout.PAGE_START);
-					panel3.add(jFormattedTextField, BorderLayout.PAGE_END);
-
-					ventana.add(panel3);
+					renderNumber(parameterLabel, ventana);
 					break;
 	    		default:
 	    			break;
     		}
-    	}
-    	
+    	}	
     }
+    
+    public void renderText(String parameterLabel, Container ventana) {
+    	JLabel textFieldLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
+    	textFieldLabel.setPreferredSize(new Dimension(200,30));
+    	JTextField textField = new JTextField();
+
+    	JPanel panel = new JPanel();
+    	panel.add(textFieldLabel, BorderLayout.PAGE_START);
+    	panel.add(textField, BorderLayout.PAGE_END);
+
+    	ventana.add(panel);
+    }
+    
+    public void renderNumber(String parameterLabel, Container ventana) {
+    	JLabel textFieldLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
+		textFieldLabel.setPreferredSize(new Dimension(200,30));
+
+		NumberFormat format = NumberFormat.getIntegerInstance();
+		format.setGroupingUsed(false);
+
+		NumberFormatter numberFormatter = new NumberFormatter(format);
+		numberFormatter.setValueClass(Long.class);
+		numberFormatter.setAllowsInvalid(false);
+
+		JFormattedTextField jFormattedTextField = new JFormattedTextField(numberFormatter);
+		jFormattedTextField.setPreferredSize(new Dimension(200,30));
+
+		JPanel panel = new JPanel();
+		panel.add(textFieldLabel, BorderLayout.PAGE_START);
+		panel.add(jFormattedTextField, BorderLayout.PAGE_END);
+
+		ventana.add(panel);
+    }
+    
+    public void renderFileChooser(String parameterLabel, Container ventana, JFrame frame) {
+    	final JFileChooser fc = new JFileChooser();
+		JLabel fileChooserLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
+		fileChooserLabel.setPreferredSize(new Dimension(200,30));
+		JButton fileChooserButton = new JButton("Examinar");
+
+		fileChooserButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int returnVal = fc.showOpenDialog(frame);
+
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					File file = fc.getSelectedFile();
+					System.out.println(file.getName());
+				} else {
+					System.out.println("No aprobado ?");
+				}
+			}
+		});
+
+		fileChooserButton.setPreferredSize(new Dimension(100,30));
+
+		JPanel panel = new JPanel();
+		panel.add(fileChooserLabel, BorderLayout.PAGE_START);
+		panel.add(fileChooserButton, BorderLayout.PAGE_END);
+		ventana.add(panel);
+    }
+    
 }
