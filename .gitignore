@@ -232,4 +232,4 @@ modules.xml
 # Sonarlint plugin
 .idea/sonarlint
 
-# End of https://www.toptal.com/developers/gitignore/api/eclipse,intellij,intellij+all
+target
