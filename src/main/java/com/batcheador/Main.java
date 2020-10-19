@@ -11,9 +11,9 @@ public class Main {
     public static void main(String[] args) throws Exception {
     	List<Class> applications = new ArrayList<Class>();
 
+		applications.add(AudioToVideo.class);
     	applications.add(CutVideo.class);
     	applications.add(MuteVideo.class);
-    	applications.add(AudioToVideo.class);
 
     	Batcheador batcheador = new Batcheador(applications);
     	batcheador.createWindow();

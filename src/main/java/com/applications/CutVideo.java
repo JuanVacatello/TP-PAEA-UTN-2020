@@ -17,4 +17,5 @@ public class CutVideo {
 
     @Parameter(type="file", label="Nombre del archivo de salida")
     private String outputFile;
+
 }

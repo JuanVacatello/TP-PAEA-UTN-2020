@@ -9,16 +9,18 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.text.NumberFormatter;
 
 import com.annotations.*;
 
 public class Batcheador {
 	private List<Class> apps;
-	
+
 	public Batcheador(List<Class> applications) {
 			this.apps = applications;
 	}
@@ -26,7 +28,41 @@ public class Batcheador {
     public void createWindow() throws Exception {
 		JFrame frame = new JFrame("Batcheador");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+/*
+		JPanel panelcomboBoxLabel = new JPanel();
+		JPanel panelcomboBox = new JPanel();
+		JPanel panelacceptButton = new JPanel();
 
+		JLabel comboBoxLabel = new JLabel("¿Qué funcionalidad desea?", SwingConstants.LEFT);
+		comboBoxLabel.setPreferredSize(new Dimension(200,30));
+
+
+		String[] applications = new String[apps.size()];
+		for(int i = 0; i<apps.size(); i++){
+			applications[i] = apps.get(i).getSimpleName();
+
+			//String applicationName = apps.get(i).getClass().getDeclaredAnnotations();
+			//System.out.println(annotation.toString());
+			//System.out.println(applications[i]);
+			//applications[i] = applicationName;
+			//System.out.println(applications[i]);
+
+		}
+
+		JComboBox comboBox = new JComboBox(applications);
+		comboBox.setPreferredSize(new Dimension(200,30));
+
+		JButton acceptButton = new JButton("Confirmar");
+
+		panelcomboBoxLabel.add(comboBoxLabel);
+		panelcomboBox.add(comboBox);
+		panelacceptButton.add(acceptButton);
+
+		frame.add(panelcomboBoxLabel, BorderLayout.PAGE_START);
+		frame.add(panelcomboBox, BorderLayout.CENTER);
+		frame.add(panelacceptButton, BorderLayout.PAGE_END);
+
+*/
 		for(Integer i=0; i<apps.size() ; i++) {
 			Class currentApplication = apps.get(i);
 			Annotation[] anotations = currentApplication.getDeclaredAnnotations();
@@ -34,8 +70,8 @@ public class Batcheador {
 		    Field[] fields = currentApplication.getDeclaredFields();
 		    processFieldsAnnotations(fields, frame);
 			break;
-		}	
-		
+		}
+
 		frame.setLocationRelativeTo(null);
 		frame.setSize(500,200);
 		frame.pack();
