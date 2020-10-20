@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.*;
@@ -164,5 +165,23 @@ public class Batcheador {
 		panel.add(fileChooserButton, BorderLayout.PAGE_END);
 		ventana.add(panel);
     }
+
+    public void printClass (Object currentAppInstance)  {
+		Field[] fields = currentAppInstance.getClass().getDeclaredFields();
+		Arrays.stream(fields).forEach((field)->{
+			field.setAccessible(true);
+			String name = field.getName();
+			Object value = null;
+			try {
+				value = field.get(currentAppInstance);
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+			System.out.println("Campo: " + name);
+			System.out.println("Valor: " + value);
+		});
+
+	}
     
 }
+
