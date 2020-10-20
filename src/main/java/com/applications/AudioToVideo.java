@@ -12,7 +12,7 @@ public class AudioToVideo {
 	@Parameter(type="file", flags="-i", label="Audio para el video")
     private String audio;
 	
-    @Parameter(type="file", flags="-shortest", label="Nombre del archivo de salida")
+    @Parameter(type="text", flags="-shortest", label="Nombre del archivo de salida")
     private String outputFile;
 
 }
