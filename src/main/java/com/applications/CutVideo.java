@@ -3,7 +3,6 @@ import com.annotations.*;
 
 @Application(name="Cortar Video")
 @Command(name="ffmpeg.exe", route="/home/gonz4/ffmpeg")
-
 public class CutVideo {
 	//ffmpeg -i video.mp4 -ss segundosInicio -t segundosFin cut.mp4
     @Parameter(type="file", flags="-i", label="Archivo a cortar")
@@ -17,5 +16,4 @@ public class CutVideo {
 
     @Parameter(type="file", label="Nombre del archivo de salida")
     private String outputFile;
-
 }

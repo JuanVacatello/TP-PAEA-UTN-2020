@@ -14,6 +14,10 @@ import java.util.List;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.text.NumberFormatter;
 
 import com.annotations.*;
@@ -24,99 +28,209 @@ public class Batcheador {
 	public Batcheador(List<Class> applications) {
 			this.apps = applications;
 	}
-	
-    public void createWindow() throws Exception {
-		JFrame frame = new JFrame("Batcheador");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-/*
-		JPanel panelcomboBoxLabel = new JPanel();
-		JPanel panelcomboBox = new JPanel();
-		JPanel panelacceptButton = new JPanel();
+
+    public void createWindow() {
+		JFrame mainFrame = new JFrame("Batcheador");
+		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		JPanel panelComboBoxLabel = new JPanel();
+		JPanel panelComboBox = new JPanel();
 
 		JLabel comboBoxLabel = new JLabel("¿Qué funcionalidad desea?", SwingConstants.LEFT);
 		comboBoxLabel.setPreferredSize(new Dimension(200,30));
 
-
 		String[] applications = new String[apps.size()];
-		for(int i = 0; i<apps.size(); i++){
-			applications[i] = apps.get(i).getSimpleName();
-
-			//String applicationName = apps.get(i).getClass().getDeclaredAnnotations();
-			//System.out.println(annotation.toString());
-			//System.out.println(applications[i]);
-			//applications[i] = applicationName;
-			//System.out.println(applications[i]);
-
+		for(int i = 0; i < apps.size(); i++){
+			applications[i] = ((Application) apps.get(i).getAnnotation(Application.class)).name();
 		}
 
 		JComboBox comboBox = new JComboBox(applications);
 		comboBox.setPreferredSize(new Dimension(200,30));
 
-		JButton acceptButton = new JButton("Confirmar");
+		panelComboBoxLabel.add(comboBoxLabel);
+		panelComboBox.add(comboBox);
 
-		panelcomboBoxLabel.add(comboBoxLabel);
-		panelcomboBox.add(comboBox);
-		panelacceptButton.add(acceptButton);
+		mainFrame.add(panelComboBoxLabel, BorderLayout.PAGE_START);
+		mainFrame.add(panelComboBox, BorderLayout.CENTER);
 
-		frame.add(panelcomboBoxLabel, BorderLayout.PAGE_START);
-		frame.add(panelcomboBox, BorderLayout.CENTER);
-		frame.add(panelacceptButton, BorderLayout.PAGE_END);
+		comboBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				JComboBox comboBox = (JComboBox) event.getSource();
+				Object selected = comboBox.getSelectedItem();
 
-*/
-		for(Integer i=0; i<apps.size() ; i++) {
-			Class currentApplication = apps.get(i);
-			Annotation[] anotations = currentApplication.getDeclaredAnnotations();
-			//TODO: procesar annotations
-		    Field[] fields = currentApplication.getDeclaredFields();
-		    processFieldsAnnotations(fields, frame);
-			break;
-		}
+				String appName = selected.toString();
+				JFrame appFrame = new JFrame(appName);
 
-		frame.setLocationRelativeTo(null);
-		frame.setSize(500,200);
-		frame.pack();
-		frame.setVisible(true);
+				Class currentApplication = apps.get(comboBox.getSelectedIndex());
+
+				try {
+					processApp(appName, currentApplication, appFrame, mainFrame);
+				} catch (Exception error) {
+					System.out.println(error.toString());
+				}
+				mainFrame.setVisible(false);
+
+				appFrame.setLocationRelativeTo(null);
+				appFrame.pack();
+				appFrame.setVisible(true);
+			}
+		});
+
+		mainFrame.setLocationRelativeTo(null);
+		mainFrame.pack();
+		mainFrame.setVisible(true);
     }
-    
-    public void processFieldsAnnotations(Field[] fields, JFrame frame) throws Exception {
-		Container ventana = frame.getContentPane();
-		ventana.setLayout(new BoxLayout(ventana, BoxLayout.Y_AXIS));
-		for (int i=0; i<fields.length ; i++) {
- 			fields[i].setAccessible(true);
-    		Annotation annotation = fields[i].getAnnotation(Parameter.class);
+
+    public void processApp(String appName, Class currentApplication, JFrame appFrame, JFrame mainFrame) throws Exception {
+		Container window = appFrame.getContentPane();
+		window.setLayout(new BoxLayout(window, BoxLayout.Y_AXIS));
+
+		Field[] fields = currentApplication.getDeclaredFields();
+		for (int i = 0; i < fields.length; i++) {
+			Field field = fields[i];
+ 			field.setAccessible(true);
+
+    		Annotation annotation = field.getAnnotation(Parameter.class);
 			Method typeGetter = annotation.annotationType().getDeclaredMethod("type");
 			String parameterType = (String)typeGetter.invoke(annotation, (Object[]) null);
 			Method labelGetter = annotation.annotationType().getDeclaredMethod("label");
 			String parameterLabel = (String)labelGetter.invoke(annotation, (Object[]) null);
+
+			Object currentAppInstance = currentApplication.getDeclaredConstructor().newInstance();
+
 			switch(parameterType) {
+				case "audioCodec":
+					renderCodec(parameterLabel, window, field, currentAppInstance, "audio");
+					break;
+				case "videoCodec":
+					renderCodec(parameterLabel, window, field, currentAppInstance, "video");
+					break;
 				case "file":
-					renderFileChooser(parameterLabel, ventana, frame);
+					renderFileChooser(parameterLabel, window, field, currentAppInstance);
 					break;
     			case "text":
-    				renderText(parameterLabel, ventana);
+    				renderText(parameterLabel, window, field, currentAppInstance);
     		    	break;
 				case "number":
-					renderNumber(parameterLabel, ventana);
+					renderNumber(parameterLabel, window, field, currentAppInstance);
 					break;
 	    		default:
 	    			break;
     		}
-    	}	
-    }
-    
-    public void renderText(String parameterLabel, Container ventana) {
+    	}
+
+		JButton cancelButton = new JButton("Cancelar");
+		JButton acceptButton = new JButton("Confirmar");
+		JPanel footerPanelButton = new JPanel();
+
+		footerPanelButton.add(cancelButton, BorderLayout.PAGE_START);
+		footerPanelButton.add(acceptButton, BorderLayout.PAGE_END);
+
+		acceptButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.out.println(appName);
+			}
+		});
+
+		cancelButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				appFrame.setVisible(false);
+				mainFrame.setVisible(true);
+			}
+		});
+
+		window.add(footerPanelButton);
+	}
+
+	private void setValueOnField(Object value, Field field, Object currentAppInstance) {
+		try {
+			field.set(currentAppInstance, value);
+		} catch (IllegalAccessException error) {
+			System.out.println(error.toString());
+		}
+	}
+
+	private Object getDocumentValue(DocumentEvent event, Boolean isNumberTextField) {
+		Document document = event.getDocument();
+		String value = "some error";
+
+		try {
+			value = document.getText(0, document.getLength());
+		} catch (BadLocationException DocumentEvent) {
+			System.out.println(DocumentEvent.toString());
+		}
+
+		return isNumberTextField ? Integer.parseInt(value) : value;
+	}
+
+	private void addListenerToTextField(JTextField textField, Field field, Object currentAppInstance, Boolean isNumberTextField) {
+		textField.getDocument().addDocumentListener(new DocumentListener() {
+			public void changedUpdate(DocumentEvent event) {
+				setValueOnField(getDocumentValue(event, isNumberTextField), field, currentAppInstance);
+			}
+
+			public void removeUpdate(DocumentEvent event) {
+				setValueOnField(getDocumentValue(event, isNumberTextField), field, currentAppInstance);
+			}
+
+			public void insertUpdate(DocumentEvent event) {
+				setValueOnField(getDocumentValue(event, isNumberTextField), field, currentAppInstance);
+			}
+		});
+	}
+
+	private String[] getCodecs(String codecType) {
+		String[] audioCodecs = { "flac", "mp3", "wma", "aac", "libvo_aacenc", "copy", "amr" };
+		String[] videoCodecs = { "libx264", "copy", "mpeg4", "flv", "wmv1", "libxvid" };
+
+		return codecType.equals("audio") ? audioCodecs : videoCodecs;
+	}
+
+	private void renderCodec(String parameterLabel, Container window, Field field, Object currentAppInstance, String codecType) {
+		String[] codecs = getCodecs(codecType);
+
+		JPanel panelComboBox = new JPanel();
+
+		JComboBox comboBox = new JComboBox(codecs);
+		comboBox.setPreferredSize(new Dimension(200,30));
+
+		comboBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				JComboBox comboBox = (JComboBox) event.getSource();
+				Object selected = comboBox.getSelectedItem();
+
+				setValueOnField(selected.toString(), field, currentAppInstance);
+			}
+		});
+
+		JLabel comboBoxLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
+		comboBoxLabel.setPreferredSize(new Dimension(100,30));
+
+		panelComboBox.add(comboBoxLabel, BorderLayout.PAGE_START);
+		panelComboBox.add(comboBox, BorderLayout.PAGE_END);
+		window.add(panelComboBox);
+	}
+
+    public void renderText(String parameterLabel, Container window, Field field, Object currentAppInstance) {
     	JLabel textFieldLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
     	textFieldLabel.setPreferredSize(new Dimension(200,30));
     	JTextField textField = new JTextField();
+    	textField.setPreferredSize(new Dimension(100, 30));
+
+		addListenerToTextField(textField, field, currentAppInstance, false);
 
     	JPanel panel = new JPanel();
     	panel.add(textFieldLabel, BorderLayout.PAGE_START);
     	panel.add(textField, BorderLayout.PAGE_END);
 
-    	ventana.add(panel);
+		window.add(panel);
     }
     
-    public void renderNumber(String parameterLabel, Container ventana) {
+    public void renderNumber(String parameterLabel, Container window, Field field, Object currentAppInstance) {
     	JLabel textFieldLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
 		textFieldLabel.setPreferredSize(new Dimension(200,30));
 
@@ -128,17 +242,19 @@ public class Batcheador {
 		numberFormatter.setAllowsInvalid(false);
 
 		JFormattedTextField jFormattedTextField = new JFormattedTextField(numberFormatter);
-		jFormattedTextField.setPreferredSize(new Dimension(200,30));
+		jFormattedTextField.setPreferredSize(new Dimension(100,30));
+
+		addListenerToTextField(jFormattedTextField, field, currentAppInstance, true);
 
 		JPanel panel = new JPanel();
 		panel.add(textFieldLabel, BorderLayout.PAGE_START);
 		panel.add(jFormattedTextField, BorderLayout.PAGE_END);
 
-		ventana.add(panel);
+		window.add(panel);
     }
     
-    public void renderFileChooser(String parameterLabel, Container ventana, JFrame frame) {
-    	final JFileChooser fc = new JFileChooser();
+    public void renderFileChooser(String parameterLabel, Container window, Field field, Object currentAppInstance) {
+    	final JFileChooser fileChooser = new JFileChooser();
 		JLabel fileChooserLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
 		fileChooserLabel.setPreferredSize(new Dimension(200,30));
 		JButton fileChooserButton = new JButton("Examinar");
@@ -146,13 +262,12 @@ public class Batcheador {
 		fileChooserButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				int returnVal = fc.showOpenDialog(frame);
+				int returnVal = fileChooser.showOpenDialog(window);
 
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					File file = fc.getSelectedFile();
-					System.out.println(file.getName());
-				} else {
-					System.out.println("No aprobado ?");
+					File file = fileChooser.getSelectedFile();
+
+					setValueOnField(file.getAbsolutePath(), field, currentAppInstance);
 				}
 			}
 		});
@@ -162,7 +277,6 @@ public class Batcheador {
 		JPanel panel = new JPanel();
 		panel.add(fileChooserLabel, BorderLayout.PAGE_START);
 		panel.add(fileChooserButton, BorderLayout.PAGE_END);
-		ventana.add(panel);
+		window.add(panel);
     }
-    
 }
