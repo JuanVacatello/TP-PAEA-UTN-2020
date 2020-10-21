@@ -14,6 +14,6 @@ public class CutVideo {
     @Parameter(type="number", flags="-t", label="Tiempo de fin en segundos")
     private int endTime;
 
-    @Parameter(type="file", label="Nombre del archivo de salida")
+    @Parameter(type="text", label="Nombre del archivo de salida")
     private String outputFile;
 }

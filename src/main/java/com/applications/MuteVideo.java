@@ -8,6 +8,6 @@ public class MuteVideo {
 	@Parameter(type="file", flags="-i", label="Archivo a mutear")
     private String file;
 
-    @Parameter(type="file", flags="-an", label="Nombre del archivo de salida")
+    @Parameter(type="text", flags="-an", label="Nombre del archivo de salida")
     private String outputFile;
 }
