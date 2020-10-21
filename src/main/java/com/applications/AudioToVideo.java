@@ -20,5 +20,3 @@ public class AudioToVideo {
     @Parameter(type="videoCodec", label="Codec de video")
     private String videoCodec;
 }
-
-

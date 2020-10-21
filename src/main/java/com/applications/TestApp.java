@@ -12,7 +12,7 @@ public class TestApp {
     private String file;
 
     @Parameter(type="text", flags="-t", label="Text")
-    private int endTime;
+    private String text;
 
     @Parameter(type="number", label="Number")
     private int number;

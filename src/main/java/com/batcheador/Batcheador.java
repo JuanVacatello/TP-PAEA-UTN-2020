@@ -88,6 +88,8 @@ public class Batcheador {
 		window.setLayout(new BoxLayout(window, BoxLayout.Y_AXIS));
 
 		Field[] fields = currentApplication.getDeclaredFields();
+		Object currentAppInstance = currentApplication.getDeclaredConstructor().newInstance();
+
 		for (int i = 0; i < fields.length; i++) {
 			Field field = fields[i];
  			field.setAccessible(true);
@@ -97,8 +99,6 @@ public class Batcheador {
 			String parameterType = (String)typeGetter.invoke(annotation, (Object[]) null);
 			Method labelGetter = annotation.annotationType().getDeclaredMethod("label");
 			String parameterLabel = (String)labelGetter.invoke(annotation, (Object[]) null);
-
-			Object currentAppInstance = currentApplication.getDeclaredConstructor().newInstance();
 
 			switch(parameterType) {
 				case "audioCodec":
@@ -131,7 +131,9 @@ public class Batcheador {
 		acceptButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println(appName);
+				System.out.println("App name: " + appName);
+
+				printClass(currentAppInstance);
 			}
 		});
 
@@ -164,7 +166,11 @@ public class Batcheador {
 			System.out.println(DocumentEvent.toString());
 		}
 
-		return isNumberTextField ? Integer.parseInt(value) : value;
+		if (isNumberTextField) {
+			return value.equals("") ? 0 : Integer.parseInt(value);
+		}
+
+		return value;
 	}
 
 	private void addListenerToTextField(JTextField textField, Field field, Object currentAppInstance, Boolean isNumberTextField) {
@@ -174,7 +180,9 @@ public class Batcheador {
 			}
 
 			public void removeUpdate(DocumentEvent event) {
-				setValueOnField(getDocumentValue(event, isNumberTextField), field, currentAppInstance);
+				Object value = getDocumentValue(event, isNumberTextField);
+
+				setValueOnField(value, field, currentAppInstance);
 			}
 
 			public void insertUpdate(DocumentEvent event) {
@@ -283,18 +291,18 @@ public class Batcheador {
 
 	public void printClass (Object currentAppInstance)  {
 		Field[] fields = currentAppInstance.getClass().getDeclaredFields();
-		Arrays.stream(fields).forEach((field)->{
+		Arrays.stream(fields).forEach(field -> {
 			field.setAccessible(true);
 			String name = field.getName();
 			Object value = null;
+
 			try {
 				value = field.get(currentAppInstance);
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 			}
 
-			System.out.println("Campo: " + name);
-			System.out.println("Valor: " + value);
+			System.out.println(name + ": " + value);
 		});
 
 	}
