@@ -9,12 +9,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -22,6 +20,7 @@ import javax.swing.text.Document;
 import javax.swing.text.NumberFormatter;
 
 import com.annotations.*;
+import com.utils.Validator;
 
 public class Batcheador {
 	private List<Class> apps;
@@ -46,6 +45,7 @@ public class Batcheador {
 		}
 
 		JComboBox comboBox = new JComboBox(applications);
+		comboBox.setSelectedIndex(-1);
 		comboBox.setPreferredSize(new Dimension(200,30));
 
 		panelComboBoxLabel.add(comboBoxLabel);
@@ -123,6 +123,7 @@ public class Batcheador {
 
 		JButton cancelButton = new JButton("Cancelar");
 		JButton acceptButton = new JButton("Confirmar");
+		acceptButton.setEnabled(false);
 		JPanel footerPanelButton = new JPanel();
 
 		footerPanelButton.add(cancelButton, BorderLayout.PAGE_START);
@@ -173,20 +174,23 @@ public class Batcheador {
 		return value;
 	}
 
-	private void addListenerToTextField(JTextField textField, Field field, Object currentAppInstance, Boolean isNumberTextField) {
+	private void addListenerToTextField(JTextField textField, Field field, Object currentAppInstance, Boolean isNumberTextField, Container window) {
 		textField.getDocument().addDocumentListener(new DocumentListener() {
 			public void changedUpdate(DocumentEvent event) {
 				setValueOnField(getDocumentValue(event, isNumberTextField), field, currentAppInstance);
+				validateConfirmar(window, currentAppInstance);
 			}
 
 			public void removeUpdate(DocumentEvent event) {
 				Object value = getDocumentValue(event, isNumberTextField);
 
 				setValueOnField(value, field, currentAppInstance);
+				validateConfirmar(window, currentAppInstance);
 			}
 
 			public void insertUpdate(DocumentEvent event) {
 				setValueOnField(getDocumentValue(event, isNumberTextField), field, currentAppInstance);
+				validateConfirmar(window, currentAppInstance);
 			}
 		});
 	}
@@ -204,6 +208,8 @@ public class Batcheador {
 		JPanel panelComboBox = new JPanel();
 
 		JComboBox comboBox = new JComboBox(codecs);
+		setValueOnField(codecs[0], field, currentAppInstance);
+
 		comboBox.setPreferredSize(new Dimension(200,30));
 
 		comboBox.addActionListener(new ActionListener() {
@@ -213,6 +219,8 @@ public class Batcheador {
 				Object selected = comboBox.getSelectedItem();
 
 				setValueOnField(selected.toString(), field, currentAppInstance);
+
+				validateConfirmar(window, currentAppInstance);
 			}
 		});
 
@@ -230,7 +238,7 @@ public class Batcheador {
     	JTextField textField = new JTextField();
     	textField.setPreferredSize(new Dimension(100, 30));
 
-		addListenerToTextField(textField, field, currentAppInstance, false);
+		addListenerToTextField(textField, field, currentAppInstance, false, window);
 
     	JPanel panel = new JPanel();
     	panel.add(textFieldLabel, BorderLayout.PAGE_START);
@@ -253,7 +261,7 @@ public class Batcheador {
 		JFormattedTextField jFormattedTextField = new JFormattedTextField(numberFormatter);
 		jFormattedTextField.setPreferredSize(new Dimension(100,30));
 
-		addListenerToTextField(jFormattedTextField, field, currentAppInstance, true);
+		addListenerToTextField(jFormattedTextField, field, currentAppInstance, true, window);
 
 		JPanel panel = new JPanel();
 		panel.add(textFieldLabel, BorderLayout.PAGE_START);
@@ -278,6 +286,8 @@ public class Batcheador {
 
 					setValueOnField(file.getAbsolutePath(), field, currentAppInstance);
 				}
+
+				validateConfirmar(window, currentAppInstance);
 			}
 		});
 
@@ -305,5 +315,21 @@ public class Batcheador {
 			System.out.println(name + ": " + value);
 		});
 
+	}
+
+	public void validateConfirmar (Container window, Object currentApp){
+		JButton jButton = null;
+		for (int i = 0; i < window.getComponents().length; i++) {
+			if(window.getComponent(i) instanceof JPanel) {
+				JPanel panel = (JPanel) window.getComponent(i);
+				for (int j = 0; j < panel.getComponents().length; j++) {
+					if(panel.getComponent(j) instanceof JButton){
+						JButton button = (JButton) panel.getComponent(j);
+						if(button.getText().equals("Confirmar"))
+							button.setEnabled(Validator.IsValid(currentApp));
+					}
+				}
+			}
+		}
 	}
 }
