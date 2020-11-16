@@ -4,7 +4,9 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -332,4 +334,17 @@ public class Batcheador {
 			}
 		}
 	}
+	/*public static void runFfmpegCommand() throws Exception {
+		ProcessBuilder builder = new ProcessBuilder(
+				"cmd.exe","ffmpeg -i C:\Users\Juan\Downloads\Video-2.mp4 -c copy -an muteado.mp4");
+		builder.redirectErrorStream(true);
+		Process p = builder.start();
+		BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		String line;
+		while (true) {
+			line = r.readLine();
+			if (line == null) { break; }
+			System.out.println(line);
+		}
+	}*/
 }

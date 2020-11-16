@@ -17,7 +17,7 @@ public class Validator {
         //Object value = null;
 
         try {
-            var value = field.get(currentApp);
+            Object value = field.get(currentApp);
             return (value != null && !value.equals(""));
         } catch (IllegalAccessException e) {
             e.printStackTrace();
