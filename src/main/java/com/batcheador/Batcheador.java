@@ -1,19 +1,22 @@
 package com.batcheador;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -21,14 +24,17 @@ import javax.swing.text.Document;
 import javax.swing.text.NumberFormatter;
 
 import com.annotations.*;
-import com.utils.RunCommand;
-import com.utils.Validator;
+import com.utils.*;
+import org.reflections.Reflections;
 
 public class Batcheador {
-	private List<Class> apps;
+	private final List<Class> apps;
 
-	public Batcheador(List<Class> applications) {
-		this.apps = applications;
+	public Batcheador() {
+		Reflections reflections = new Reflections("");
+		Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(Command.class);
+		this.apps = new ArrayList<Class>(annotated);
+		CommandRunner.init();
 	}
 
 	public void createWindow() {
@@ -56,28 +62,25 @@ public class Batcheador {
 		mainFrame.add(panelComboBoxLabel, BorderLayout.PAGE_START);
 		mainFrame.add(panelComboBox, BorderLayout.CENTER);
 
-		comboBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				JComboBox comboBox = (JComboBox) event.getSource();
-				Object selected = comboBox.getSelectedItem();
+		comboBox.addActionListener(event -> {
+			JComboBox comboBox1 = (JComboBox) event.getSource();
+			Object selected = comboBox1.getSelectedItem();
 
-				String appName = selected.toString();
-				JFrame appFrame = new JFrame(appName);
+			String appName = selected.toString();
+			JFrame appFrame = new JFrame(appName);
 
-				Class currentApplication = apps.get(comboBox.getSelectedIndex());
+			Class currentApplication = apps.get(comboBox1.getSelectedIndex());
 
-				try {
-					processApp(appName, currentApplication, appFrame, mainFrame);
-				} catch (Exception error) {
-					System.out.println(error.toString());
-				}
-				mainFrame.setVisible(false);
-
-				appFrame.setLocationRelativeTo(null);
-				appFrame.pack();
-				appFrame.setVisible(true);
+			try {
+				processApp(appName, currentApplication, appFrame, mainFrame);
+			} catch (Exception error) {
+				System.out.println(error.toString());
 			}
+			mainFrame.setVisible(false);
+
+			appFrame.setLocationRelativeTo(null);
+			appFrame.pack();
+			appFrame.setVisible(true);
 		});
 
 		mainFrame.setLocationRelativeTo(null);
@@ -139,7 +142,9 @@ public class Batcheador {
 				printClass(currentAppInstance);
 
 				try {
-					new RunCommand(currentAppInstance).run();
+					List<String> errors = CommandRunner.run(currentAppInstance);
+
+					showResultsWindow(appFrame, errors);
 				} catch (IOException ex) {
 					ex.printStackTrace();
 				}
@@ -155,6 +160,49 @@ public class Batcheador {
 		});
 
 		window.add(footerPanelButton);
+	}
+
+	private void addContentToResultsPanel(JPanel contentPanel, List<String> errors) {
+		if (errors.size() != 0) {
+			JLabel errorSectionTitle = new JLabel("Hubo errores al ejecutar el comando:");
+
+			JPanel errorsPanel = new JPanel();
+			errorsPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+			errorsPanel.setLayout(new BoxLayout(errorsPanel, BoxLayout.Y_AXIS));
+
+			for( int i = 0; i < errors.size(); i++) {
+				JLabel errorLabel = new JLabel(errors.get(i));
+				errorsPanel.add(errorLabel);
+			}
+
+			contentPanel.add(errorSectionTitle);
+			contentPanel.add(errorsPanel);
+		} else {
+			JLabel successLabel = new JLabel("El comando se ejecuto exitosamente");
+			contentPanel.add(successLabel);
+		}
+	}
+
+	private void showResultsWindow(JFrame appFrame, List<String> errors) {
+		JFrame resultsFrame = new JFrame("Resultados");
+		JPanel contentPanel = new JPanel();
+		contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+		contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+		addContentToResultsPanel(contentPanel, errors);
+
+		resultsFrame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				resultsFrame.setVisible(false);
+				appFrame.setVisible(true);
+			}
+		});
+
+		resultsFrame.add(contentPanel, BorderLayout.CENTER);
+		resultsFrame.setLocationRelativeTo(null);
+		resultsFrame.pack();
+		appFrame.setVisible(false);
+		resultsFrame.setVisible(true);
 	}
 
 	private void setValueOnField(Object value, Field field, Object currentAppInstance) {
@@ -326,7 +374,6 @@ public class Batcheador {
 	}
 
 	public void validateConfirmar(Container window, Object currentApp) {
-		JButton jButton = null;
 		for (int i = 0; i < window.getComponents().length; i++) {
 			if (window.getComponent(i) instanceof JPanel) {
 				JPanel panel = (JPanel) window.getComponent(i);

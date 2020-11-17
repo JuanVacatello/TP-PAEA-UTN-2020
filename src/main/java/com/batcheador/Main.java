@@ -1,16 +1,7 @@
 package com.batcheador;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import com.annotations.Command;
-import org.reflections.Reflections;
-
 public class Main {
     public static void main(String[] args) {
-    	List<Class> applications = new ArrayList<Class>();
-
 //		La idea del ComboBox con opciones era que fuera genérico,
 //		que el usuario final pueda agregar su propio combobox sin tener que meterse al código de la biblioteca.
 //		También estaría bueno que el atributo type fuera un enum, así el usuario puede crear sus comandos con autocomplete súper fácil.
@@ -28,14 +19,6 @@ public class Main {
 //		TODO:Debe detectar y notificar la existencia de un error de FFmpeg (ver códigos de error).
 //		TODO:No hace falta manejarlo ni parsarlo, con mostrar la salida de FFmpeg al usuario es suficiente.
 //		TODO:Deben estar implementados los tres comandos del ejemplo al final del documento.
-
-
-		Reflections reflections = new Reflections("");
-		Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(Command.class);
-
-		applications.addAll(annotated);
-
-    	Batcheador batcheador = new Batcheador(applications);
-    	batcheador.createWindow();
+    	new Batcheador().createWindow();
     }
 }
