@@ -50,7 +50,7 @@ public class CommandRunner {
     }
 
     private static String build(Object currentAppInstance) {
-        String appCommand = "ffmpeg";
+        String appCommand = currentAppInstance.getClass().getAnnotation(Application.class).command();
         String fieldsValues = "";
         Field[] fields = currentAppInstance.getClass().getDeclaredFields();
 
@@ -58,6 +58,7 @@ public class CommandRunner {
             field.setAccessible(true);
             Parameter parameterAnnotation = field.getAnnotation(Parameter.class);
             if (parameterAnnotation != null) {
+                fieldsValues += parameterAnnotation.prefix().isEmpty() ? "" : " " + parameterAnnotation.prefix() ;
                 fieldsValues += " " + parameterAnnotation.flags();
                 Object value = null;
                 try {
@@ -78,6 +79,7 @@ public class CommandRunner {
                 }
 
                 fieldsValues += " " + value;
+                fieldsValues += parameterAnnotation.suffix().isEmpty() ? "" : " " + parameterAnnotation.suffix() ;
             }
         }
         appCommand += fieldsValues;

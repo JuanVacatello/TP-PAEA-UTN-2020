@@ -42,8 +42,8 @@ public class Batcheador {
 		JPanel panelComboBoxLabel = new JPanel();
 		JPanel panelComboBox = new JPanel();
 
-		JLabel comboBoxLabel = new JLabel(Strings.APP_SELECTION_COMBO_BOX_LABEL, SwingConstants.LEFT);
-		comboBoxLabel.setPreferredSize(new Dimension(200, 30));
+		JLabel comboBoxLabel = new JLabel(Strings.APP_SELECTION_COMBO_BOX_LABEL, SwingConstants.CENTER);
+		comboBoxLabel.setPreferredSize(new Dimension(300, 30));
 
 		String[] applications = new String[apps.size()];
 		for (int i = 0; i < apps.size(); i++) {
@@ -99,27 +99,27 @@ public class Batcheador {
 
 			Annotation annotation = field.getAnnotation(Parameter.class);
 			Method typeGetter = annotation.annotationType().getDeclaredMethod("type");
-			String parameterType = (String) typeGetter.invoke(annotation, (Object[]) null);
+			ParameterType parameterType = (ParameterType) typeGetter.invoke(annotation, (Object[]) null);
 			Method labelGetter = annotation.annotationType().getDeclaredMethod("label");
 			String parameterLabel = (String) labelGetter.invoke(annotation, (Object[]) null);
 
 			switch (parameterType) {
-				case "audioCodec":
+				case AUDIOCODEC:
 					renderCodec(parameterLabel, window, field, currentAppInstance, "audio");
 					break;
-				case "videoCodec":
+				case VIDEOCODEC:
 					renderCodec(parameterLabel, window, field, currentAppInstance, "video");
 					break;
-				case "file":
+				case FILE:
 					renderFileChooser(parameterLabel, window, field, currentAppInstance);
 					break;
-				case "text":
+				case TEXT:
 					renderText(parameterLabel, window, field, currentAppInstance);
 					break;
-				case "number":
+				case NUMBER:
 					renderNumber(parameterLabel, window, field, currentAppInstance);
 					break;
-				case "outputFile":
+				case OUTPUTFILE:
 					renderOutputFile(parameterLabel, window, field, currentAppInstance);
 					break;
 				default:

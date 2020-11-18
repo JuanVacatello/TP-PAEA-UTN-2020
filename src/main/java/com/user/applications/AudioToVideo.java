@@ -1,22 +1,24 @@
 package com.user.applications;
+import com.batcheador.OutputFile;
 import com.batcheador.annotations.*;
+import com.batcheador.utils.ParameterType;
 
 @Application(name="Audio a Video")
 public class AudioToVideo {
 	//ffmpeg -loop 1 -i img.png -i audio.mp3 -c:a codecAudio -c:v codecVideo -shortest salida.mp4
-    @Parameter(type="file", flags="-i", label="Imagen para el video")
+    @Parameter(type= ParameterType.FILE, prefix="-loop 1", flags="-i", label="Imagen para el video")
     private String image;
 
-    @Parameter(type="file", flags="-i", label="Audio para el video")
+    @Parameter(type=ParameterType.FILE, flags="-i", label="Audio para el video")
     private String audio;
 
-    @Parameter(type="text", flags="-shortest", label="Nombre del archivo de salida")
-    private String outputFile;
+    @Parameter(type=ParameterType.OUTPUTFILE, flags="-shortest", label="Nombre del archivo de salida")
+    private OutputFile outputFile;
 
-    @Parameter(type="audioCodec", label="Codec de audio")
+    @Parameter(type=ParameterType.AUDIOCODEC, flags="-c:a", label="Codec de audio")
     private String audioCodec;
 
-    @Parameter(type="videoCodec", label="Codec de video")
+    @Parameter(type=ParameterType.VIDEOCODEC, flags="-c:v", label="Codec de video")
     private String videoCodec;
 
 }
