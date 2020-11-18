@@ -46,7 +46,8 @@ public class CommandRunner {
     }
 
     private static boolean hasError(String line) {
-        return line.contains("Error") || line.contains("Unable");
+        // TODO: No se como reconocer cuando ffmpeg falla, deberiamos agregar aca ese checkeo y sacar esto horrible.
+        return line.contains("Error") || line.contains("Unable") ;
     }
 
     private static String build(Object currentAppInstance) {
@@ -78,11 +79,15 @@ public class CommandRunner {
                     e.printStackTrace();
                 }
 
+                if (value instanceof String && ((String) value).contains(" ")) {
+                    value = "\"" + value + "\"";
+                }
                 fieldsValues += " " + value;
-                fieldsValues += parameterAnnotation.suffix().isEmpty() ? "" : " " + parameterAnnotation.suffix() ;
+                fieldsValues += parameterAnnotation.suffix().isEmpty() ? "" : " " + parameterAnnotation.suffix();
             }
         }
         appCommand += fieldsValues;
+        System.out.println(appCommand);
         return appCommand;
     }
 }
