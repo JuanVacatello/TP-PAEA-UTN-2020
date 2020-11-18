@@ -1,13 +1,14 @@
 package com.utils;
 
-import com.annotations.Parameter;
+import com.annotations.*;
+import com.batcheador.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class CommandRunner {
@@ -51,24 +52,35 @@ public class CommandRunner {
     private static String build(Object currentAppInstance) {
         String appCommand = "";
         String fieldsValues = "";
-        appCommand += currentAppInstance.getClass().getAnnotation(com.annotations.Command.class).name();
+        appCommand += currentAppInstance.getClass().getAnnotation(Command.class).name();
         Field[] fields = currentAppInstance.getClass().getDeclaredFields();
 
-        for (int i = 0; i < fields.length; i++) {
-            fields[i].setAccessible(true);
-            if(fields[i].getAnnotation(Parameter.class) != null) {
-                fieldsValues += " " + fields[i].getAnnotation(Parameter.class).flags();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            if (field.getAnnotation(Parameter.class) != null) {
+                fieldsValues += " " + field.getAnnotation(Parameter.class).flags();
                 Object value = null;
                 try {
-                    value = fields[i].get(currentAppInstance);
-                } catch (IllegalAccessException e) {
+                    value = field.get(currentAppInstance);
+                    if (value instanceof OutputFile) {
+                        Method getFolderPathMethod = Batcheador.findMethodOnOutputFile(value, "getFolderPath");
+                        Method getFileNameMethod = Batcheador.findMethodOnOutputFile(value, "getFileName");
+                        getFolderPathMethod.setAccessible(true);
+                        getFileNameMethod.setAccessible(true);
+
+                        String folderPath = (String) getFolderPathMethod.invoke(value);
+                        String fileName = (String) getFileNameMethod.invoke(value);
+
+                        value = folderPath + "/" + fileName;
+                    }
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
                 fieldsValues += " " + value;
             }
         }
-        appCommand+=fieldsValues;
+        appCommand += fieldsValues;
         return appCommand;
     }
 }

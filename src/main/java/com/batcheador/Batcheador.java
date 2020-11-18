@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -121,6 +122,9 @@ public class Batcheador {
 				case "number":
 					renderNumber(parameterLabel, window, field, currentAppInstance);
 					break;
+				case "outputFile":
+					renderOutputFile(parameterLabel, window, field, currentAppInstance);
+					break;
 				default:
 					break;
 			}
@@ -134,29 +138,23 @@ public class Batcheador {
 		footerPanelButton.add(cancelButton, BorderLayout.PAGE_START);
 		footerPanelButton.add(acceptButton, BorderLayout.PAGE_END);
 
-		acceptButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				System.out.println("App name: " + appName);
+		acceptButton.addActionListener(e -> {
+			System.out.println("App name: " + appName);
 
-				printClass(currentAppInstance);
+			printClass(currentAppInstance);
 
-				try {
-					List<String> errors = CommandRunner.run(currentAppInstance);
+			try {
+				List<String> errors = CommandRunner.run(currentAppInstance);
 
-					showResultsWindow(appFrame, errors);
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
+				showResultsWindow(appFrame, errors);
+			} catch (IOException ex) {
+				ex.printStackTrace();
 			}
 		});
 
-		cancelButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				appFrame.setVisible(false);
-				mainFrame.setVisible(true);
-			}
+		cancelButton.addActionListener(e -> {
+			appFrame.setVisible(false);
+			mainFrame.setVisible(true);
 		});
 
 		window.add(footerPanelButton);
@@ -258,6 +256,35 @@ public class Batcheador {
 		return codecType.equals("audio") ? audioCodecs : videoCodecs;
 	}
 
+	public static Method findMethodOnOutputFile(Object outputFile, String methodName) {
+		Method method = null;
+		try {
+			Method[] methods = outputFile.getClass().getDeclaredMethods();
+
+			for (Method currentMethod : methods) {
+				if (currentMethod.getName().equals(methodName)) {
+					method = currentMethod;
+					break;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return method;
+	}
+
+	private void setValueOnOutputFile(Object currentOutputFile, String methodName, String value) {
+		try {
+			Method setFolderPathMethod = findMethodOnOutputFile(currentOutputFile, methodName);
+
+			setFolderPathMethod.setAccessible(true);
+			setFolderPathMethod.invoke(currentOutputFile, value);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	private void renderCodec(String parameterLabel, Container window, Field field, Object currentAppInstance, String codecType) {
 		String[] codecs = getCodecs(codecType);
 
@@ -288,7 +315,7 @@ public class Batcheador {
 		window.add(panelComboBox);
 	}
 
-	public void renderText(String parameterLabel, Container window, Field field, Object currentAppInstance) {
+	private void renderText(String parameterLabel, Container window, Field field, Object currentAppInstance) {
 		JLabel textFieldLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
 		textFieldLabel.setPreferredSize(new Dimension(200, 30));
 		JTextField textField = new JTextField();
@@ -303,7 +330,7 @@ public class Batcheador {
 		window.add(panel);
 	}
 
-	public void renderNumber(String parameterLabel, Container window, Field field, Object currentAppInstance) {
+	private void renderNumber(String parameterLabel, Container window, Field field, Object currentAppInstance) {
 		JLabel textFieldLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
 		textFieldLabel.setPreferredSize(new Dimension(200, 30));
 
@@ -326,11 +353,13 @@ public class Batcheador {
 		window.add(panel);
 	}
 
-	public void renderFileChooser(String parameterLabel, Container window, Field field, Object currentAppInstance) {
+	private void renderFileChooser(String parameterLabel, Container window, Field field, Object currentAppInstance) {
 		final JFileChooser fileChooser = new JFileChooser();
 		JLabel fileChooserLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
-		fileChooserLabel.setPreferredSize(new Dimension(200, 30));
 		JButton fileChooserButton = new JButton("Examinar");
+
+		JLabel filePathLabel = new JLabel();
+		filePathLabel.setMinimumSize(new Dimension(100, 0));
 
 		fileChooserButton.addActionListener(new ActionListener() {
 			@Override
@@ -338,9 +367,10 @@ public class Batcheador {
 				int returnVal = fileChooser.showOpenDialog(window);
 
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					File file = fileChooser.getSelectedFile();
+					String filePath = fileChooser.getSelectedFile().getAbsolutePath();
 
-					setValueOnField(file.getAbsolutePath(), field, currentAppInstance);
+					filePathLabel.setText(filePath);
+					setValueOnField(filePath, field, currentAppInstance);
 				}
 
 				validateConfirmar(window, currentAppInstance);
@@ -351,11 +381,79 @@ public class Batcheador {
 
 		JPanel panel = new JPanel();
 		panel.add(fileChooserLabel, BorderLayout.PAGE_START);
-		panel.add(fileChooserButton, BorderLayout.PAGE_END);
+		panel.add(fileChooserButton, BorderLayout.CENTER);
+		panel.add(filePathLabel, BorderLayout.PAGE_END);
+
 		window.add(panel);
 	}
 
-	public void printClass (Object currentAppInstance)  {
+	private void renderOutputFile(String parameterLabel, Container window, Field field, Object currentAppInstance) throws Exception {
+		Object currentOutputFile = field.getType().getDeclaredConstructor().newInstance();
+		field.set(currentAppInstance, currentOutputFile);
+
+		final JFileChooser outputFileLocationChooser = new JFileChooser();
+		JLabel outputFileNameLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
+		outputFileNameLabel.setPreferredSize(new Dimension(200, 30));
+		JButton outputFileLocationChooserButton = new JButton("Ubicacion");
+
+		outputFileLocationChooser.setCurrentDirectory(new File("."));
+		outputFileLocationChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		outputFileLocationChooser.setAcceptAllFileFilterUsed(false);
+
+		JLabel folderPathLabel = new JLabel();
+		folderPathLabel.setMinimumSize(new Dimension(150, 0));
+
+		outputFileLocationChooserButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int returnVal = outputFileLocationChooser.showOpenDialog(window);
+
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					String folderPath = outputFileLocationChooser.getSelectedFile().getAbsolutePath();
+
+					folderPathLabel.setText(folderPath);
+
+					setValueOnOutputFile(currentOutputFile, "setFolderPath", folderPath);
+				}
+
+				validateConfirmar(window, currentAppInstance);
+			}
+		});
+
+		outputFileLocationChooserButton.setPreferredSize(new Dimension(100, 30));
+
+		JTextField fileNameTextField = new JTextField();
+		fileNameTextField.setPreferredSize(new Dimension(100, 30));
+		fileNameTextField.getDocument().addDocumentListener(new DocumentListener() {
+			public void changedUpdate(DocumentEvent event) {
+				setValueOnOutputFile(currentOutputFile, "setFileName", (String) getDocumentValue(event, false));
+				validateConfirmar(window, currentAppInstance);
+			}
+
+			public void removeUpdate(DocumentEvent event) {
+				setValueOnOutputFile(currentOutputFile, "setFileName", (String) getDocumentValue(event, false));
+				validateConfirmar(window, currentAppInstance);
+			}
+
+			public void insertUpdate(DocumentEvent event) {
+				setValueOnOutputFile(currentOutputFile, "setFileName", (String) getDocumentValue(event, false));
+				validateConfirmar(window, currentAppInstance);
+			}
+		});
+
+		JPanel topPanel = new JPanel();
+		JPanel bottomPanel = new JPanel();
+
+		topPanel.add(outputFileNameLabel, BorderLayout.PAGE_START);
+		topPanel.add(fileNameTextField, BorderLayout.PAGE_END);
+		bottomPanel.add(outputFileLocationChooserButton, BorderLayout.PAGE_START);
+		bottomPanel.add(folderPathLabel, BorderLayout.PAGE_END);
+
+		window.add(topPanel);
+		window.add(bottomPanel);
+	}
+
+	private void printClass (Object currentAppInstance)  {
 		Field[] fields = currentAppInstance.getClass().getDeclaredFields();
 		Arrays.stream(fields).forEach(field -> {
 			field.setAccessible(true);
@@ -373,7 +471,7 @@ public class Batcheador {
 
 	}
 
-	public void validateConfirmar(Container window, Object currentApp) {
+	private void validateConfirmar(Container window, Object currentApp) {
 		for (int i = 0; i < window.getComponents().length; i++) {
 			if (window.getComponent(i) instanceof JPanel) {
 				JPanel panel = (JPanel) window.getComponent(i);
