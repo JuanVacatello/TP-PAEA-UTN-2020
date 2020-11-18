@@ -1,8 +1,7 @@
-package com.applications;
-import com.annotations.*;
+package com.user.applications;
+import com.batcheador.annotations.*;
 
 @Application(name="Cortar Video")
-@Command(name="ffmpeg", route="/home/gonz4/ffmpeg")
 public class CutVideo {
 	//ffmpeg -i video.mp4 -ss segundosInicio -t segundosFin cut.mp4
     @Parameter(type="file", flags="-i", label="Archivo a cortar")

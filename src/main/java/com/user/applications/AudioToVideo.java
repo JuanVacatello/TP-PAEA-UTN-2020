@@ -1,8 +1,7 @@
-package com.applications;
-import com.annotations.*;
+package com.user.applications;
+import com.batcheador.annotations.*;
 
 @Application(name="Audio a Video")
-@Command(name="ffmpeg", route="/home/gonz4/ffmpeg")
 public class AudioToVideo {
 	//ffmpeg -loop 1 -i img.png -i audio.mp3 -c:a codecAudio -c:v codecVideo -shortest salida.mp4
     @Parameter(type="file", flags="-i", label="Imagen para el video")

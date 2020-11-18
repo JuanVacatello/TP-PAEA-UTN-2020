@@ -1,7 +1,5 @@
 package com.batcheador;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -16,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -24,8 +21,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.NumberFormatter;
 
-import com.annotations.*;
-import com.utils.*;
+import com.batcheador.annotations.*;
+import com.batcheador.utils.*;
 import org.reflections.Reflections;
 
 public class Batcheador {
@@ -33,19 +30,19 @@ public class Batcheador {
 
 	public Batcheador() {
 		Reflections reflections = new Reflections("");
-		Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(Command.class);
+		Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(Application.class);
 		this.apps = new ArrayList<Class>(annotated);
 		CommandRunner.init();
 	}
 
 	public void createWindow() {
-		JFrame mainFrame = new JFrame("Batcheador");
+		JFrame mainFrame = new JFrame(Strings.BATCHEADOR_TITLE);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JPanel panelComboBoxLabel = new JPanel();
 		JPanel panelComboBox = new JPanel();
 
-		JLabel comboBoxLabel = new JLabel("¿Qué funcionalidad desea?", SwingConstants.LEFT);
+		JLabel comboBoxLabel = new JLabel(Strings.APP_SELECTION_COMBO_BOX_LABEL, SwingConstants.LEFT);
 		comboBoxLabel.setPreferredSize(new Dimension(200, 30));
 
 		String[] applications = new String[apps.size()];
@@ -130,8 +127,8 @@ public class Batcheador {
 			}
 		}
 
-		JButton cancelButton = new JButton("Cancelar");
-		JButton acceptButton = new JButton("Confirmar");
+		JButton cancelButton = new JButton(Strings.CANCEL_BUTTON_LABEL);
+		JButton acceptButton = new JButton(Strings.SUBMIT_BUTTON_LABEL);
 		acceptButton.setEnabled(false);
 		JPanel footerPanelButton = new JPanel();
 
@@ -162,7 +159,7 @@ public class Batcheador {
 
 	private void addContentToResultsPanel(JPanel contentPanel, List<String> errors) {
 		if (errors.size() != 0) {
-			JLabel errorSectionTitle = new JLabel("Hubo errores al ejecutar el comando:");
+			JLabel errorSectionTitle = new JLabel(Strings.ERROR_WINDOW_TITLE);
 
 			JPanel errorsPanel = new JPanel();
 			errorsPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
@@ -176,13 +173,13 @@ public class Batcheador {
 			contentPanel.add(errorSectionTitle);
 			contentPanel.add(errorsPanel);
 		} else {
-			JLabel successLabel = new JLabel("El comando se ejecuto exitosamente");
+			JLabel successLabel = new JLabel(Strings.SUCCESS_RESULTS_MESSAGE);
 			contentPanel.add(successLabel);
 		}
 	}
 
 	private void showResultsWindow(JFrame appFrame, List<String> errors) {
-		JFrame resultsFrame = new JFrame("Resultados");
+		JFrame resultsFrame = new JFrame(Strings.RESULTS_FRAME_TITLE);
 		JPanel contentPanel = new JPanel();
 		contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 		contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
@@ -295,16 +292,13 @@ public class Batcheador {
 
 		comboBox.setPreferredSize(new Dimension(200, 30));
 
-		comboBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				JComboBox comboBox = (JComboBox) event.getSource();
-				Object selected = comboBox.getSelectedItem();
+		comboBox.addActionListener(event -> {
+			JComboBox comboBox1 = (JComboBox) event.getSource();
+			Object selected = comboBox1.getSelectedItem();
 
-				setValueOnField(selected.toString(), field, currentAppInstance);
+			setValueOnField(selected.toString(), field, currentAppInstance);
 
-				validateConfirmar(window, currentAppInstance);
-			}
+			validateConfirmar(window, currentAppInstance);
 		});
 
 		JLabel comboBoxLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
@@ -356,25 +350,22 @@ public class Batcheador {
 	private void renderFileChooser(String parameterLabel, Container window, Field field, Object currentAppInstance) {
 		final JFileChooser fileChooser = new JFileChooser();
 		JLabel fileChooserLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
-		JButton fileChooserButton = new JButton("Examinar");
+		JButton fileChooserButton = new JButton(Strings.FILE_CHOOSER_BUTTON_LABEL);
 
 		JLabel filePathLabel = new JLabel();
 		filePathLabel.setMinimumSize(new Dimension(100, 0));
 
-		fileChooserButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int returnVal = fileChooser.showOpenDialog(window);
+		fileChooserButton.addActionListener(e -> {
+			int returnVal = fileChooser.showOpenDialog(window);
 
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					String filePath = fileChooser.getSelectedFile().getAbsolutePath();
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				String filePath = fileChooser.getSelectedFile().getAbsolutePath();
 
-					filePathLabel.setText(filePath);
-					setValueOnField(filePath, field, currentAppInstance);
-				}
-
-				validateConfirmar(window, currentAppInstance);
+				filePathLabel.setText(filePath);
+				setValueOnField(filePath, field, currentAppInstance);
 			}
+
+			validateConfirmar(window, currentAppInstance);
 		});
 
 		fileChooserButton.setPreferredSize(new Dimension(100, 30));
@@ -394,7 +385,7 @@ public class Batcheador {
 		final JFileChooser outputFileLocationChooser = new JFileChooser();
 		JLabel outputFileNameLabel = new JLabel(parameterLabel, SwingConstants.LEFT);
 		outputFileNameLabel.setPreferredSize(new Dimension(200, 30));
-		JButton outputFileLocationChooserButton = new JButton("Ubicacion");
+		JButton outputFileLocationChooserButton = new JButton(Strings.FOLDER_CHOOSER_BUTTON_LABEL);
 
 		outputFileLocationChooser.setCurrentDirectory(new File("."));
 		outputFileLocationChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -403,21 +394,18 @@ public class Batcheador {
 		JLabel folderPathLabel = new JLabel();
 		folderPathLabel.setMinimumSize(new Dimension(150, 0));
 
-		outputFileLocationChooserButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int returnVal = outputFileLocationChooser.showOpenDialog(window);
+		outputFileLocationChooserButton.addActionListener(e -> {
+			int returnVal = outputFileLocationChooser.showOpenDialog(window);
 
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					String folderPath = outputFileLocationChooser.getSelectedFile().getAbsolutePath();
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				String folderPath = outputFileLocationChooser.getSelectedFile().getAbsolutePath();
 
-					folderPathLabel.setText(folderPath);
+				folderPathLabel.setText(folderPath);
 
-					setValueOnOutputFile(currentOutputFile, "setFolderPath", folderPath);
-				}
-
-				validateConfirmar(window, currentAppInstance);
+				setValueOnOutputFile(currentOutputFile, "setFolderPath", folderPath);
 			}
+
+			validateConfirmar(window, currentAppInstance);
 		});
 
 		outputFileLocationChooserButton.setPreferredSize(new Dimension(100, 30));
@@ -478,7 +466,7 @@ public class Batcheador {
 				for (int j = 0; j < panel.getComponents().length; j++) {
 					if (panel.getComponent(j) instanceof JButton) {
 						JButton button = (JButton) panel.getComponent(j);
-						if (button.getText().equals("Confirmar"))
+						if (button.getText().equals(Strings.SUBMIT_BUTTON_LABEL))
 							button.setEnabled(Validator.IsValid(currentApp));
 					}
 				}

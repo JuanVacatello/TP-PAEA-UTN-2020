@@ -1,6 +1,6 @@
-package com.utils;
+package com.batcheador.utils;
 
-import com.annotations.*;
+import com.batcheador.annotations.*;
 import com.batcheador.*;
 
 import java.io.BufferedReader;
@@ -50,15 +50,15 @@ public class CommandRunner {
     }
 
     private static String build(Object currentAppInstance) {
-        String appCommand = "";
+        String appCommand = "ffmpeg";
         String fieldsValues = "";
-        appCommand += currentAppInstance.getClass().getAnnotation(Command.class).name();
         Field[] fields = currentAppInstance.getClass().getDeclaredFields();
 
         for (Field field : fields) {
             field.setAccessible(true);
-            if (field.getAnnotation(Parameter.class) != null) {
-                fieldsValues += " " + field.getAnnotation(Parameter.class).flags();
+            Parameter parameterAnnotation = field.getAnnotation(Parameter.class);
+            if (parameterAnnotation != null) {
+                fieldsValues += " " + parameterAnnotation.flags();
                 Object value = null;
                 try {
                     value = field.get(currentAppInstance);
